@@ -1,0 +1,11 @@
+body {
+    min-height: 100vh;
+}
+
+.card {
+    border: 0;
+}
+
+header {
+    background: linear-gradient(135deg, #0d6efd, #084298);
+}
