@@ -8,7 +8,9 @@ final class Config
 {
     private static ?PDO $conexao = null;
 
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     public static function connect(): PDO
     {
@@ -29,27 +31,27 @@ final class Config
 
         $host = (string) (
             $_ENV['DB_HOST']
-            ?? 'localhost'
+                ?? 'localhost'
         );
 
         $porta = (string) (
             $_ENV['DB_PORT']
-            ?? '3307'
+                ?? '3307'
         );
 
         $banco = (string) (
             $_ENV['DB_DATABASE']
-            ?? ''
+                ?? ''
         );
 
         $usuario = (string) (
             $_ENV['DB_USERNAME']
-            ?? 'root'
+                ?? 'root'
         );
 
         $senha = (string) (
             $_ENV['DB_PASSWORD']
-            ?? ''
+                ?? ''
         );
 
         if ($banco === '') {
@@ -72,22 +74,23 @@ final class Config
                 $senha,
                 [
                     PDO::ATTR_ERRMODE =>
-                    PDO::ERRMODE_EXCEPTION,
+                        PDO::ERRMODE_EXCEPTION,
 
                     PDO::ATTR_DEFAULT_FETCH_MODE =>
-                    PDO::FETCH_ASSOC,
+                        PDO::FETCH_ASSOC,
 
                     PDO::ATTR_EMULATE_PREPARES =>
-                    false,
+                        false,
                 ]
             );
 
             return self::$conexao;
+
         } catch (PDOException $erro) {
 
             error_log(
                 '[CONEXÃO COM O BANCO] '
-                    . $erro->getMessage()
+                . $erro->getMessage()
             );
 
             throw new RuntimeException(

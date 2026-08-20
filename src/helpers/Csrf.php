@@ -7,12 +7,14 @@ namespace App\Helpers;
 final class Csrf
 {
     private const CHAVE_SESSAO =
-    '_csrf_admin';
+        '_csrf_admin';
 
     public static function gerar(): string
     {
         if (
-            empty($_SESSION[self::CHAVE_SESSAO])
+            empty(
+                $_SESSION[self::CHAVE_SESSAO]
+            )
         ) {
             $_SESSION[self::CHAVE_SESSAO] =
                 bin2hex(
@@ -21,7 +23,7 @@ final class Csrf
         }
 
         return (string)
-        $_SESSION[self::CHAVE_SESSAO];
+            $_SESSION[self::CHAVE_SESSAO];
     }
 
     public static function validar(
@@ -29,14 +31,16 @@ final class Csrf
     ): bool {
         if (
             $token === null
-            || empty($_SESSION[self::CHAVE_SESSAO])
+            || empty(
+                $_SESSION[self::CHAVE_SESSAO]
+            )
         ) {
             return false;
         }
 
         return hash_equals(
             (string)
-            $_SESSION[self::CHAVE_SESSAO],
+                $_SESSION[self::CHAVE_SESSAO],
 
             $token
         );
@@ -50,6 +54,6 @@ final class Csrf
             );
 
         return (string)
-        $_SESSION[self::CHAVE_SESSAO];
+            $_SESSION[self::CHAVE_SESSAO];
     }
 }

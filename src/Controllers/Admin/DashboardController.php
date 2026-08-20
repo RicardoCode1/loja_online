@@ -8,12 +8,16 @@ use App\Controllers\Controller;
 use App\Helpers\Csrf;
 
 final class DashboardController
-extends Controller
+    extends Controller
 {
     public function index(): void
     {
         if (
-            empty($_SESSION['usuario_admin']['id'])
+            empty(
+                $_SESSION[
+                    'usuario_admin'
+                ]['id']
+            )
         ) {
             $this->redirecionar(
                 '/login-admin'
@@ -24,13 +28,15 @@ extends Controller
             'admin/dashboard',
             [
                 'tituloPagina' =>
-                'Dashboard administrativo',
+                    'Dashboard administrativo',
 
                 'usuarioAdmin' =>
-                $_SESSION['usuario_admin'],
+                    $_SESSION[
+                        'usuario_admin'
+                    ],
 
                 'csrfToken' =>
-                Csrf::gerar(),
+                    Csrf::gerar(),
 
                 'indicadores' => [
                     'produtos' => 0,

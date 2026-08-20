@@ -1,16 +1,44 @@
 <?php
-
 declare(strict_types=1);
-
-use App\Controllers\Site\ClienteLController;
-
+use App\Controllers\Cliente\ClienteLoginController;
 return [
+    /*
+    |--------------------------------------------------------------------------
+    | Formulário de login
+    |--------------------------------------------------------------------------
+    */
     [
         'method' => 'GET',
-        'path' => '/clienteL',
+        'path' => '/cliente/login',
         'action' => [
-            ClienteLController::class,
-            'index',
+            ClienteLoginController::class,
+            'formulario',
         ],
-    ]
+    ],
+    /*
+    |--------------------------------------------------------------------------
+    | Processar login
+    |--------------------------------------------------------------------------
+    */
+    [
+        'method' => 'POST',
+        'path' => '/cliente/login',
+        'action' => [
+            ClienteLoginController::class,
+            'autenticar',
+        ],
+    ],
+    /*
+    |--------------------------------------------------------------------------
+    | Logout
+    |--------------------------------------------------------------------------
+    */
+    [
+        'method' => 'POST',
+        'path' => '/cliente/sair',
+        'action' => [
+            ClienteLoginController::class,
+            'sair',
+        ],
+    ],
 ];

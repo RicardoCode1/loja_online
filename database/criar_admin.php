@@ -5,7 +5,9 @@ declare(strict_types=1);
 if (PHP_SAPI !== 'cli') {
     http_response_code(403);
 
-    exit('Este arquivo deve ser executado somente pelo terminal.');
+    exit(
+        'Este arquivo deve ser executado somente pelo terminal.'
+    );
 }
 
 $pdo = require __DIR__ . '/conexao.php';
@@ -42,7 +44,9 @@ if (
 }
 
 if (strlen($senha) < 8) {
-    exit("A senha deve possuir pelo menos 8 caracteres.\n");
+    exit(
+        "A senha deve possuir pelo menos 8 caracteres.\n"
+    );
 }
 
 $senhaHash = password_hash(
@@ -78,7 +82,7 @@ try {
 } catch (PDOException $erro) {
     error_log(
         '[CRIAR ADMIN] '
-            . $erro->getMessage()
+        . $erro->getMessage()
     );
 
     echo "Não foi possível criar o administrador.\n";

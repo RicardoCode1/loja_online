@@ -7,7 +7,9 @@ namespace App\Controllers\Site;
 use App\Helpers\IdSeguro;
 use App\Repositories\CategoriaRepository;
 use App\Repositories\ProdutoRepository;
+use App\Helpers\CsrfCarrinho;
 use Config;
+
 use RuntimeException;
 
 class CategoriasController
@@ -116,6 +118,21 @@ class CategoriasController
                 $categoriaId
             );
         /*
+|--------------------------------------------------------------------------
+| 10. Adiciona id_seguro aos produtos
+|--------------------------------------------------------------------------
+*/
+        $produtos = array_map(
+            static function (array $produto): array {
+                $produto['id_seguro'] =
+                    IdSeguro::criptografar(
+                        (int) $produto['id']
+                    );
+                return $produto;
+            },
+            $produtos
+        );
+        /*
         |--------------------------------------------------------------------------
         | 10. Busca categorias para o HEADER
         |--------------------------------------------------------------------------
@@ -153,6 +170,12 @@ class CategoriasController
             ? (string) $categoria['descricao']
             : 'Produtos da categoria '
             . $categoria['nome'];
+
+
+
+        $csrfCarrinho = CsrfCarrinho::gerar();
+
+
         /*
         |--------------------------------------------------------------------------
         | 13. Localiza a View

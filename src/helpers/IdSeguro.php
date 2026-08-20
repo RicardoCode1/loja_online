@@ -14,7 +14,7 @@ final class IdSeguro
     {
         $appKey = (string) (
             $_ENV['APP_KEY']
-            ?? ''
+                ?? ''
         );
 
         if ($appKey === '') {

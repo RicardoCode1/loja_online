@@ -12,5 +12,6 @@ return [
             OfertasController::class,
             'index',
         ],
-    ]
+    ],
+    
 ];
