@@ -4,23 +4,36 @@ declare(strict_types=1);
 
 namespace App\Controllers\Cliente;
 
-use App\Helpers\ClienteAuth;
+use App\Helpers\Cpf;
 use App\Helpers\CsrfCliente;
 use App\Helpers\IdSeguro;
 use App\Repositories\CategoriaRepository;
 use App\Repositories\ClienteRepository;
+use App\Repositories\EnderecoRepository;
+use App\Services\CarrinhoService;
+use App\Services\ClienteCadastroService;
+use RuntimeException;
 
-final class ClienteLoginController
+final class ClienteCadastroController
 {
-    private ClienteRepository
-        $clienteRepository;
-
     private CategoriaRepository
         $categoriaRepository;
+
+    private ClienteCadastroService
+        $cadastroService;
+
+    private CarrinhoService
+        $carrinhoService;
 
 
     public function __construct()
     {
+        /*
+    |--------------------------------------------------------------------------
+    | Conexão
+    |--------------------------------------------------------------------------
+    */
+
         require_once APP_ROOT
             . '/database/conexao.php';
 
@@ -28,14 +41,64 @@ final class ClienteLoginController
             \Config::connect();
 
 
-        $this->clienteRepository =
+        /*
+    |--------------------------------------------------------------------------
+    | Categoria Repository
+    |--------------------------------------------------------------------------
+    */
+
+        $this->categoriaRepository =
+            new CategoriaRepository(
+                $pdo
+            );
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Cliente Repository
+    |--------------------------------------------------------------------------
+    */
+
+        $clienteRepository =
             new ClienteRepository(
                 $pdo
             );
 
 
-        $this->categoriaRepository =
-            new CategoriaRepository(
+        /*
+    |--------------------------------------------------------------------------
+    | Endereço Repository
+    |--------------------------------------------------------------------------
+    */
+
+        $enderecoRepository =
+            new EnderecoRepository(
+                $pdo
+            );
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Cadastro Service
+    |--------------------------------------------------------------------------
+    */
+
+        $this->cadastroService =
+            new ClienteCadastroService(
+                $pdo,
+                $clienteRepository,
+                $enderecoRepository
+            );
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Carrinho Service
+    |--------------------------------------------------------------------------
+    */
+
+        $this->carrinhoService =
+            new CarrinhoService(
                 $pdo
             );
     }
@@ -43,19 +106,6 @@ final class ClienteLoginController
 
     public function formulario(): void
     {
-        if (
-            ClienteAuth::logado()
-        ) {
-            header(
-                'Location: '
-                    . BASE_URL
-                    . '/cliente'
-            );
-
-            exit;
-        }
-
-
         $categorias =
             $this->categoriaRepository
             ->listarAtivas();
@@ -76,25 +126,25 @@ final class ClienteLoginController
         unset($categoria);
 
 
-        $erroLogin =
-            $_SESSION['cliente_login_erro']
+        $erro =
+            $_SESSION['cliente_cadastro_erro']
             ?? null;
 
 
-        $mensagemSucesso =
-            $_SESSION['cliente_login_sucesso']
+        $sucesso =
+            $_SESSION['cliente_cadastro_sucesso']
             ?? null;
 
 
-        $emailLogin =
-            $_SESSION['cliente_login_email']
-            ?? '';
+        $dados =
+            $_SESSION['cliente_cadastro_dados']
+            ?? [];
 
 
         unset(
-            $_SESSION['cliente_login_erro'],
-            $_SESSION['cliente_login_sucesso'],
-            $_SESSION['cliente_login_email']
+            $_SESSION['cliente_cadastro_erro'],
+            $_SESSION['cliente_cadastro_sucesso'],
+            $_SESSION['cliente_cadastro_dados']
         );
 
 
@@ -102,14 +152,27 @@ final class ClienteLoginController
             CsrfCliente::gerar();
 
 
+        $tituloPagina =
+            'Criar minha conta';
+
+
+
+
+        $quantidadeCarrinho =
+            $this->carrinhoService
+            ->quantidade();
+
+
         $arquivoView =
             APP_ROOT
-            . '/views/site/cliente_login.php';
+            . '/views/site/'
+            . 'cliente_cadastro.php';
 
 
         if (!is_file($arquivoView)) {
-            throw new \RuntimeException(
-                'A página de login '
+
+            throw new RuntimeException(
+                'A página de cadastro '
                     . 'não foi encontrada.'
             );
         }
@@ -119,7 +182,7 @@ final class ClienteLoginController
     }
 
 
-    public function autenticar(): void
+    public function cadastrar(): void
     {
         $token =
             isset(
@@ -138,137 +201,335 @@ final class ClienteLoginController
             $this->falhar(
                 'O formulário expirou. '
                     . 'Atualize a página '
-                    . 'e tente novamente.'
+                    . 'e tente novamente.',
+                []
             );
         }
 
 
-        $email = strtolower(
+        $dados = [
+            'nome' =>
             trim(
                 (string) (
-                    $_POST['email']
+                    $_POST['nome']
                     ?? ''
                 )
+            ),
+
+            'cpf' =>
+            trim(
+                (string) (
+                    $_POST['cpf']
+                    ?? ''
+                )
+            ),
+
+            'data_nascimento' =>
+            trim(
+                (string) (
+                    $_POST['data_nascimento']
+                    ?? ''
+                )
+            ),
+
+            'telefone' =>
+            trim(
+                (string) (
+                    $_POST['telefone']
+                    ?? ''
+                )
+            ),
+
+            'cep' =>
+            trim(
+                (string) (
+                    $_POST['cep']
+                    ?? ''
+                )
+            ),
+
+            'logradouro' =>
+            trim(
+                (string) (
+                    $_POST['logradouro']
+                    ?? ''
+                )
+            ),
+
+            'numero' =>
+            trim(
+                (string) (
+                    $_POST['numero']
+                    ?? ''
+                )
+            ),
+
+            'complemento' =>
+            trim(
+                (string) (
+                    $_POST['complemento']
+                    ?? ''
+                )
+            ),
+
+            'bairro' =>
+            trim(
+                (string) (
+                    $_POST['bairro']
+                    ?? ''
+                )
+            ),
+
+            'cidade' =>
+            trim(
+                (string) (
+                    $_POST['cidade']
+                    ?? ''
+                )
+            ),
+
+            'estado' =>
+            strtoupper(
+                trim(
+                    (string) (
+                        $_POST['estado']
+                        ?? ''
+                    )
+                )
+            ),
+
+            'email' =>
+            strtolower(
+                trim(
+                    (string) (
+                        $_POST['email']
+                        ?? ''
+                    )
+                )
+            ),
+
+            'newsletter' =>
+            isset(
+                $_POST['newsletter']
             )
-        );
+                ? 1
+                : 0,
+        ];
 
 
-        $senha = (string) (
-            $_POST['senha']
-            ?? ''
-        );
+        $senha =
+            (string) (
+                $_POST['senha']
+                ?? ''
+            );
+
+
+        $confirmarSenha =
+            (string) (
+                $_POST['confirmar_senha']
+                ?? ''
+            );
+
+
+        if (
+            mb_strlen(
+                $dados['nome']
+            )
+            < 3
+        ) {
+            $this->falhar(
+                'Informe o nome completo.',
+                $dados
+            );
+        }
+
+
+        if (
+            !Cpf::validar(
+                $dados['cpf']
+            )
+        ) {
+            $this->falhar(
+                'Informe um CPF válido.',
+                $dados
+            );
+        }
 
 
         if (
             filter_var(
-                $email,
+                $dados['email'],
                 FILTER_VALIDATE_EMAIL
-            ) === false
-            || $senha === ''
+            )
+            === false
         ) {
             $this->falhar(
-                'Informe um e-mail '
-                    . 'e uma senha válidos.',
-                $email
+                'Informe um e-mail válido.',
+                $dados
             );
         }
 
 
-        $cliente =
-            $this->clienteRepository
-            ->buscarAtivoPorEmail(
-                $email
-            );
+        if (strlen($senha) < 8) {
 
-
-        $senhaCorreta =
-            $cliente !== null
-            && !empty($cliente['senha_hash'])
-            && password_verify(
-                $senha,
-                (string)
-                $cliente['senha_hash']
-            );
-
-
-        if (!$senhaCorreta) {
             $this->falhar(
-                'E-mail ou senha inválidos.',
-                $email
+                'A senha deve possuir '
+                    . 'pelo menos 8 caracteres.',
+                $dados
             );
         }
-
-
-        ClienteAuth::entrar(
-            $cliente
-        );
-
-
-        $this->clienteRepository
-            ->registrarUltimoAcesso(
-                (int)
-                $cliente['id']
-            );
-
-
-        CsrfCliente::renovar();
-
-
-        header(
-            'Location: '
-                . BASE_URL
-                . '/cliente'
-        );
-
-        exit;
-    }
-
-
-    public function sair(): void
-    {
-        $token =
-            isset(
-                $_POST['csrf_token']
-            )
-            ? (string)
-            $_POST['csrf_token']
-            : null;
 
 
         if (
-            !CsrfCliente::validar(
-                $token
-            )
+            $senha
+            !== $confirmarSenha
         ) {
-            http_response_code(403);
-
-            exit('Solicitação inválida.');
+            $this->falhar(
+                'A confirmação da senha '
+                    . 'não corresponde.',
+                $dados
+            );
         }
 
 
-        ClienteAuth::sair();
+        $aceitouTermos =
+            isset(
+                $_POST['aceite_termos']
+            )
+            &&
+            $_POST['aceite_termos']
+            === '1';
+
+
+        if (!$aceitouTermos) {
+
+            $this->falhar(
+                'Você precisa aceitar '
+                    . 'os termos de uso.',
+                $dados
+            );
+        }
+
+
+        $camposObrigatorios = [
+            'telefone',
+            'cep',
+            'logradouro',
+            'numero',
+            'bairro',
+            'cidade',
+            'estado',
+        ];
+
+
+        foreach (
+            $camposObrigatorios
+            as $campo
+        ) {
+
+            if (
+                $dados[$campo]
+                === ''
+            ) {
+                $this->falhar(
+                    'Preencha todos os '
+                        . 'campos obrigatórios.',
+                    $dados
+                );
+            }
+        }
+
+
+        $estadosValidos = [
+            'AC',
+            'AL',
+            'AP',
+            'AM',
+            'BA',
+            'CE',
+            'DF',
+            'ES',
+            'GO',
+            'MA',
+            'MT',
+            'MS',
+            'MG',
+            'PA',
+            'PB',
+            'PR',
+            'PE',
+            'PI',
+            'RJ',
+            'RN',
+            'RS',
+            'RO',
+            'RR',
+            'SC',
+            'SP',
+            'SE',
+            'TO',
+        ];
+
+
+        if (
+            !in_array(
+                $dados['estado'],
+                $estadosValidos,
+                true
+            )
+        ) {
+            $this->falhar(
+                'Selecione um estado válido.',
+                $dados
+            );
+        }
+
+
+        $dados['cpf'] =
+            Cpf::somenteNumeros(
+                $dados['cpf']
+            );
+
+
+        if (
+            $dados['data_nascimento']
+            === ''
+        ) {
+            $dados['data_nascimento'] = null;
+        }
+
+
+        $dados['senha'] =
+            $senha;
+
+
+        try {
+
+            $this->cadastroService
+                ->cadastrar(
+                    $dados
+                );
+        } catch (RuntimeException $erro) {
+
+            unset(
+                $dados['senha']
+            );
+
+
+            $this->falhar(
+                $erro->getMessage(),
+                $dados
+            );
+        }
+
 
         CsrfCliente::renovar();
 
 
-        header(
-            'Location: '
-                . BASE_URL
-                . '/'
-        );
-
-        exit;
-    }
-
-    private function falhar(
-        string $mensagem,
-        string $email = ''
-    ): void {
-
-        $_SESSION['cliente_login_erro'] = $mensagem;
-
-
-        $_SESSION['cliente_login_email'] = $email;
+        $_SESSION['cliente_login_sucesso'] =
+            'Cadastro realizado com sucesso. '
+            . 'Agora você pode entrar '
+            . 'na sua conta.';
 
 
         header(
@@ -276,6 +537,37 @@ final class ClienteLoginController
                 . BASE_URL
                 . '/cliente/login'
         );
+
+
+        exit;
+    }
+
+
+    private function falhar(
+        string $mensagem,
+        array $dados
+    ): void {
+
+        unset(
+            $dados['senha'],
+            $dados['confirmar_senha']
+        );
+
+
+        $_SESSION['cliente_cadastro_erro'] =
+            $mensagem;
+
+
+        $_SESSION['cliente_cadastro_dados'] =
+            $dados;
+
+
+        header(
+            'Location: '
+                . BASE_URL
+                . '/cliente/cadastro'
+        );
+
 
         exit;
     }
