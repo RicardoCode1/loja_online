@@ -8,7 +8,11 @@ class ClienteController
 {
     public function index(): void
     {
-        $arquivoView = dirname(__DIR__, 3) . '/views/site/cliente.php';
+        $carrinhoService =
+            new CarrinhoService($pdo);
+        $quantidadeCarrinho =
+            $carrinhoService->quantidade();
+$arquivoView = dirname(__DIR__, 3) . '/views/site/cliente.php';
 
         if (!is_file($arquivoView)) {
             throw new \RuntimeException(
