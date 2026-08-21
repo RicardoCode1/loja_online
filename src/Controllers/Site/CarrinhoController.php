@@ -11,7 +11,6 @@ use App\Helpers\IdSeguro;
 use App\Repositories\CarrinhoRepository;
 use App\Repositories\CategoriaRepository;
 use App\Repositories\ProdutoRepository;
-use App\Services\CarrinhoService;
 use RuntimeException;
 
 final class CarrinhoController
@@ -213,11 +212,7 @@ final class CarrinhoController
         | 12. View
         |--------------------------------------------------------------------------
         */
-        $carrinhoService =
-            new CarrinhoService($pdo);
-        $quantidadeCarrinho =
-            $carrinhoService->quantidade();
-$arquivoView =
+        $arquivoView =
             APP_ROOT
             . '/views/site/carrinho.php';
         if (!is_file($arquivoView)) {

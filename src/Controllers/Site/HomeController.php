@@ -80,6 +80,8 @@ class HomeController
             new CarrinhoService($pdo);
         $quantidadeCarrinho =
             $carrinhoService->quantidade();
+
+            
 $arquivoView =
             $raizProjeto
             . '/views/site/home.php';
