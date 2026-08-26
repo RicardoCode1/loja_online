@@ -143,10 +143,13 @@ final class OfertasController
 
         $csrfCarrinho = CsrfCarrinho::gerar();
 
-        $carrinhoService =
+        
+$carrinhoService =
             new CarrinhoService($pdo);
+
         $quantidadeCarrinho =
             $carrinhoService->quantidade();
+
 $arquivoView =
             $raizProjeto
             . '/views/site/ofertas.php';

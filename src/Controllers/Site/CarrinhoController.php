@@ -84,16 +84,20 @@ final class CarrinhoController
             ->listarItens(
                 $carrinhoId
             );
+
         /*
     |--------------------------------------------------------------------------
     | Quantidade no carrinho
     |--------------------------------------------------------------------------
     */
+
         $quantidadeCarrinho =
             $this->carrinhoRepository
             ->totalUnidades(
                 $carrinhoId
             );
+
+
         /*
         |--------------------------------------------------------------------------
         | 3. Gera ID seguro dos produtos
@@ -728,4 +732,6 @@ final class CarrinhoController
         );
         exit;
     }
+
+    
 }

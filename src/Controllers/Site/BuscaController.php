@@ -183,10 +183,13 @@ final class BuscaController
         |--------------------------------------------------------------------------
         */
 
-        $carrinhoService =
+        
+$carrinhoService =
             new CarrinhoService($pdo);
+
         $quantidadeCarrinho =
             $carrinhoService->quantidade();
+
 $arquivoView =
             $raizProjeto
             . '/views/site/busca.php';
